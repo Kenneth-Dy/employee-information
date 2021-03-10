@@ -10,7 +10,117 @@ const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
 
+let employees = []
 
+
+const main = () => {
+  console.log(`Welcome! Please enter your team's information.`)
+  inquirer.prompt([
+    {  
+      type: 'input',
+      name: 'managerName',
+      message: 'Enter the name of the team manager:'
+    },
+    {
+      type: 'number',
+      name: 'managerId',
+      message: 'Enter manager ID:'
+    },
+    {
+      type: 'input',
+      name: 'managerEmail',
+      message: 'Enter manager email:'
+    },
+    {
+      type: 'input',
+      name: 'managerNumber',
+      message: 'Enter manager number:'
+    },
+    {
+      type: 'confirm',
+      name: 'continue',
+      message: 'Do you want to add more team members?'
+    }
+  ])
+    .then(res => {
+      let man = new Manager(res.managerName, res.managerId, res.managerEmail, res.managerNumber)
+      employees.push(man)
+
+      if(res.continue){
+        employeeInfo()
+      }else{
+        renderEmployees()
+      }
+    })
+    .catch(err => console.log(err))
+}
+
+const employeeInfo = () =>{
+  inquirer.prompt([
+    {
+      type: 'list',
+      name: 'role',
+      message: 'What is the role of the employee?',
+      choices: ['Intern', 'Engineer'] 
+    },
+    {
+      type: 'input',
+      name: 'employeeName',
+      message: 'Enter employee name:'
+    },
+    {
+      type: 'number',
+      name: 'employeeId',
+      message: 'Enter employee ID:'
+    },
+    {
+      type: 'input',
+      name: 'employeeEmail',
+      message: 'Enter employee email:'
+    },
+    {
+      type: 'input',
+      name: 'employeeSchool',
+      message: 'Enter employee school:',
+      when: function(answers) {return (answers.role === 'Intern')}
+    },
+    {
+      type:  'input',
+      name: 'employeeUsername',
+      message: 'Enter employee GitHub username:',
+      when: function(answers) {return (answers.role === 'Engineer')}
+    },
+    {
+      type: 'confirm',
+      name: 'continue',
+      message: 'Do you want to add more team members?'
+    }
+  ])
+    .then(res => {
+      if(res.role === 'Intern') {
+        let newEmployee = new Intern(res.employeeName, res.employeeId, res.employeeEmail, res.employeeSchool)
+        employees.push(newEmployee)
+      }else {
+        let newEmployee = new Engineer(res.employeeName, res.employeeId, res.employeeEmail, res.employeeUsername)
+        employees.push(newEmployee)
+      }
+
+      if(res.continue){
+        employeeInfo()
+      }else {
+        renderEmployees()
+      }
+    })
+    .catch(err => console.log(err))
+}
+
+const renderEmployees = () => {
+  fs.writeFile(outputPath, render(employees), err => {
+    if (err) { console.log(err) }
+  })
+}
+
+main()
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
 
